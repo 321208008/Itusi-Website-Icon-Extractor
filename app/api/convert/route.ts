@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import ICO from 'icojs';
+import sharp from 'sharp';
 
 async function fetchWithTimeout(url: string, timeout = 10000, retries = 2): Promise<Response> {
   const controller = new AbortController();
@@ -79,9 +80,53 @@ async function tryFetchIcon(url: string): Promise<Response> {
   throw new Error(`无法获取网站图标:\n${errors.join('\n')}`);
 }
 
+async function processImage(buffer: Buffer, size?: number, format = 'png'): Promise<{ buffer: Buffer; contentType: string }> {
+  try {
+    let image = sharp(buffer);
+    const metadata = await image.metadata();
+    
+    // 调整图像大小
+    if (size) {
+      image = image.resize(size, size, {
+        fit: 'contain',
+        background: { r: 255, g: 255, b: 255, alpha: 0 }
+      });
+    }
+
+    // 根据格式转换
+    let contentType: string;
+    switch (format.toLowerCase()) {
+      case 'png':
+        buffer = await image.png().toBuffer();
+        contentType = 'image/png';
+        break;
+      case 'jpg':
+      case 'jpeg':
+        buffer = await image
+          .flatten({ background: { r: 255, g: 255, b: 255 } })
+          .jpeg({ quality: 90 })
+          .toBuffer();
+        contentType = 'image/jpeg';
+        break;
+      case 'webp':
+        buffer = await image.webp({ quality: 90 }).toBuffer();
+        contentType = 'image/webp';
+        break;
+      default:
+        buffer = await image.png().toBuffer();
+        contentType = 'image/png';
+    }
+
+    return { buffer, contentType };
+  } catch (error) {
+    console.error('Error processing image:', error);
+    throw new Error('图像处理失败');
+  }
+}
+
 export async function POST(request: Request) {
   try {
-    const { url } = await request.json();
+    const { url, size, format } = await request.json();
 
     if (!url) {
       return NextResponse.json({ success: false, error: '需要图标URL' }, { status: 400 });
@@ -116,27 +161,49 @@ export async function POST(request: Request) {
             (curr.width > prev.width) ? curr : prev
           );
           
-          // 返回PNG格式的图标
-          return new NextResponse(Buffer.from(largestIcon.buffer), {
+          // 处理图像
+          const { buffer, contentType: processedContentType } = await processImage(
+            Buffer.from(largestIcon.buffer),
+            size,
+            format
+          );
+          
+          return new NextResponse(buffer, {
             headers: {
-              'Content-Type': 'image/png',
-              'Content-Disposition': 'attachment; filename=icon.png'
+              'Content-Type': processedContentType,
+              'Content-Disposition': `attachment; filename=icon.${format || 'png'}`
             }
           });
         }
       } catch (error) {
         console.error('Error parsing ICO:', error);
-        // 如果ICO解析失败，返回原始图标
       }
     }
     
-    // 返回原始图标
-    return new NextResponse(Buffer.from(arrayBuffer), {
-      headers: {
-        'Content-Type': contentType,
-        'Content-Disposition': `attachment; filename=icon.${contentType.split('/')[1]}`
-      }
-    });
+    // 处理其他格式的图像
+    try {
+      const { buffer, contentType: processedContentType } = await processImage(
+        Buffer.from(arrayBuffer),
+        size,
+        format
+      );
+      
+      return new NextResponse(buffer, {
+        headers: {
+          'Content-Type': processedContentType,
+          'Content-Disposition': `attachment; filename=icon.${format || contentType.split('/')[1]}`
+        }
+      });
+    } catch (error) {
+      console.error('Error processing image:', error);
+      // 如果处理失败，返回原始图像
+      return new NextResponse(Buffer.from(arrayBuffer), {
+        headers: {
+          'Content-Type': contentType,
+          'Content-Disposition': `attachment; filename=icon.${contentType.split('/')[1]}`
+        }
+      });
+    }
   } catch (error: unknown) {
     console.error('Error:', error);
     const errorMessage = error instanceof Error ? error.message : '处理图标时出错';

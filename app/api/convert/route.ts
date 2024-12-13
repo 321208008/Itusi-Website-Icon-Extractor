@@ -2,6 +2,25 @@ import { NextResponse } from 'next/server';
 import sharp from 'sharp';
 import ICO from 'icojs';
 
+async function fetchWithTimeout(url: string, timeout = 5000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
+    });
+    clearTimeout(id);
+    return response;
+  } catch (error) {
+    clearTimeout(id);
+    throw error;
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const { url, format, size, transparent } = await request.json();
@@ -11,7 +30,17 @@ export async function POST(request: Request) {
     }
 
     // 下载图标
-    const response = await fetch(url);
+    let response;
+    try {
+      response = await fetchWithTimeout(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error fetching icon:', error);
+      return NextResponse.json({ success: false, error: '无法下载图标' }, { status: 500 });
+    }
+
     const arrayBuffer = await response.blob().then(blob => blob.arrayBuffer());
     
     // 如果输入是ICO格式，先转换为PNG
@@ -42,6 +71,10 @@ export async function POST(request: Request) {
     // 获取图像信息
     try {
       const metadata = await image.metadata();
+      if (!metadata.width || !metadata.height) {
+        throw new Error('Invalid image metadata');
+      }
+
       const targetSize = size || metadata.width || 32;
 
       // 调整大小

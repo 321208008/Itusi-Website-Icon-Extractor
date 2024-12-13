@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import sharp from 'sharp';
-import ICO from 'icojs/browser';
+import ICO from 'icojs';
 
 export async function POST(request: Request) {
   try {
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     let inputBuffer: Buffer;
     if (url.toLowerCase().endsWith('.ico')) {
       try {
-        const images = await ICO.parsePNG(Buffer.from(arrayBuffer));
+        const images = await ICO.parseICO(Buffer.from(arrayBuffer), 'image/png');
         if (images && images.length > 0) {
           // 使用最大尺寸的图标
           const largestIcon = images.reduce((prev, curr) => 

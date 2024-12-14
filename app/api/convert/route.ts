@@ -1,8 +1,22 @@
 import { NextResponse } from 'next/server';
-import cloudinary from '@/lib/cloudinary';
+import cloudinary, { validateCloudinaryConfig } from '@/lib/cloudinary';
 
 export async function POST(request: Request) {
   try {
+    // 运行时检查 Cloudinary 配置
+    try {
+      validateCloudinaryConfig();
+    } catch (error) {
+      console.error('Cloudinary配置错误:', error);
+      return NextResponse.json(
+        { 
+          error: '服务配置错误',
+          details: error instanceof Error ? error.message : '未知错误'
+        },
+        { status: 500 }
+      );
+    }
+
     const { url, format, size, transparent } = await request.json();
 
     if (!url) {

@@ -148,7 +148,7 @@ export function IconExtractor({ language }: IconExtractorProps) {
                   <label className="text-sm font-medium">{t.format}</label>
                   <Select 
                     value={format} 
-                    onValueChange={(value) => setFormat(value as IconFormat)}
+                    onValueChange={setFormat}
                     disabled={isIcoSource && format === 'ico'}
                   >
                     <SelectTrigger>

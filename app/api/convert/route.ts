@@ -6,13 +6,18 @@ export async function POST(request: Request) {
     const { url, format, size, transparent } = await request.json();
 
     // 构建 Cloudinary 转换参数
-    const transformations = [
+    const transformations: any[] = [
       { width: size, height: size, crop: 'fit' },
-      { format: format === 'ico' ? 'png' : format },
     ];
 
+    // 设置输出格式
+    if (format !== 'ico') {
+      transformations.push({ format });
+    }
+
+    // 如果不需要透明背景，添加白色背景
     if (!transparent && format !== 'jpg') {
-      transformations.push({ background: 'white' });
+      transformations.push({ effect: 'background', background: 'white' });
     }
 
     // 上传并转换图像

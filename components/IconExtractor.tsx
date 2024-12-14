@@ -93,8 +93,8 @@ export function IconExtractor({ language }: IconExtractorProps) {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-6">
-      <Card className="p-6">
+    <div className="min-h-[calc(100vh-16rem)] flex items-center justify-center">
+      <Card className="w-full max-w-2xl p-6">
         <div className="space-y-4">
           <div className="flex gap-2">
             <Input
@@ -123,11 +123,10 @@ export function IconExtractor({ language }: IconExtractorProps) {
                   {t.download}
                 </Button>
               </div>
-              <div className="border rounded p-4 bg-muted/50">
+              <div className="border rounded p-4 bg-muted/50 flex items-center justify-center min-h-[120px]">
                 <img
                   src={iconUrl}
                   alt="Icon preview"
-                  className="mx-auto"
                   style={{
                     width: size,
                     height: size,

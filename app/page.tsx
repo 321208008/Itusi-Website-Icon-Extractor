@@ -29,7 +29,7 @@ export default function Home() {
         <main className="space-y-8">
           {/* 顶部横幅广告 */}
           <GoogleAdsense
-            slot="1234567890"
+            slot="2660025805"
             style={{ display: 'block' }}
             format="auto"
             responsive={true}
@@ -40,7 +40,7 @@ export default function Home() {
 
           {/* 底部横幅广告 */}
           <GoogleAdsense
-            slot="0987654321"
+            slot="2660025805"
             style={{ display: 'block' }}
             format="auto"
             responsive={true}

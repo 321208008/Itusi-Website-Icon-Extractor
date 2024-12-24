@@ -6,7 +6,6 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { Logo } from "@/components/Logo";
 import { translations } from "@/lib/translations";
-import { GoogleAdsense } from "@/components/GoogleAdsense";
 
 export default function Home() {
   const [language, setLanguage] = useState("en");
@@ -26,26 +25,8 @@ export default function Home() {
           </div>
         </header>
         
-        <main className="space-y-8">
-          {/* 顶部横幅广告 */}
-          <GoogleAdsense
-            slot="2660025805"
-            style={{ display: 'block' }}
-            format="auto"
-            responsive={true}
-            className="my-4"
-          />
-
+        <main>
           <IconExtractor language={language} />
-
-          {/* 底部横幅广告 */}
-          <GoogleAdsense
-            slot="2660025805"
-            style={{ display: 'block' }}
-            format="auto"
-            responsive={true}
-            className="my-4"
-          />
         </main>
       </div>
     </div>

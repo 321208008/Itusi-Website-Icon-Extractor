@@ -4,7 +4,7 @@ import { Inter } from 'next/font/google';
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { Github, Twitter, Globe } from 'lucide-react';
-import Script from 'next/script';
+import { GoogleAdsenseScript } from '@/components/GoogleAdsenseScript';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -25,13 +25,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="shortcut icon" href="/favicon.ico" />
-        <meta name="google-adsense-verification" content="ca-pub-9535069756501112" />
-        <Script
-          async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_ID}`}
-          strategy="lazyOnload"
-          crossOrigin="anonymous"
-        />
+        <GoogleAdsenseScript />
       </head>
       <body className={inter.className}>
         <ThemeProvider
